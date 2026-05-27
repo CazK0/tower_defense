@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 import math
-from models import GameState, EnemyData, TowerData, Position
+from models import GameState, EnemyData, TowerData, Position, LaserData
 
 
 class GameEngine:
@@ -11,7 +11,8 @@ class GameEngine:
             lives=20,
             wave=1,
             enemies={},
-            towers={}
+            towers={},
+            lasers=[]
         )
         self.tick_rate = 1 / 30
         self.wave_active = False
@@ -39,7 +40,7 @@ class GameEngine:
 
     async def spawn_wave_routine(self):
         for _ in range(10):
-            self.spawn_enemy("circle", 50, 2.0)
+            self.spawn_enemy("circle", 20, 2.0)
             await asyncio.sleep(2)
 
         self.wave_active = False
@@ -52,6 +53,7 @@ class GameEngine:
             await asyncio.sleep(self.tick_rate)
 
     def update_physics(self):
+        self.state.lasers.clear()
         enemies_to_remove = []
 
         for e_id, enemy in self.state.enemies.items():
@@ -72,6 +74,13 @@ class GameEngine:
 
                 if distance <= tower.radius:
                     enemy.hp -= tower.damage
+
+                    self.state.lasers.append(LaserData(
+                        startX=tower.pos.x,
+                        startY=tower.pos.y,
+                        endX=enemy.pos.x,
+                        endY=enemy.pos.y
+                    ))
 
                     if enemy.hp <= 0 and e_id not in enemies_to_remove:
                         self.state.money += 10
