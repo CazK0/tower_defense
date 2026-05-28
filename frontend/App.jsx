@@ -39,14 +39,40 @@ export default function App() {
       });
     }
 
-    ctx.fillStyle = 'red';
-    Object.values(gameState.enemies).forEach(enemy => {
+    const drawPolygon = (x, y, radius, sides) => {
       ctx.beginPath();
-      ctx.arc(enemy.pos.x, enemy.pos.y, 15, 0, Math.PI * 2);
+      for (let i = 0; i < sides; i++) {
+        const angle = (i * 2 * Math.PI) / sides - (Math.PI / 2);
+        const px = x + radius * Math.cos(angle);
+        const py = y + radius * Math.sin(angle);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
       ctx.fill();
+    };
+
+    const sidesMap = {
+      'triangle': 3,
+      'square': 4,
+      'pentagon': 5,
+      'hexagon': 6,
+      'heptagon': 7,
+      'octagon': 8
+    };
+
+    ctx.fillStyle = '#ff3366';
+    Object.values(gameState.enemies).forEach(enemy => {
+      if (enemy.type === 'circle') {
+        ctx.beginPath();
+        ctx.arc(enemy.pos.x, enemy.pos.y, 15, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        drawPolygon(enemy.pos.x, enemy.pos.y, 15, sidesMap[enemy.type] || 8);
+      }
     });
 
-    ctx.fillStyle = 'blue';
+    ctx.fillStyle = '#0088ff';
     Object.values(gameState.towers).forEach(tower => {
       ctx.fillRect(tower.pos.x - 15, tower.pos.y - 15, 30, 30);
     });
