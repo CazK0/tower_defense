@@ -16,6 +16,15 @@ class GameEngine:
         )
         self.tick_rate = 1 / 30
         self.wave_active = False
+        self.wave_shapes = {
+            1: "circle",
+            2: "triangle",
+            3: "square",
+            4: "pentagon",
+            5: "hexagon",
+            6: "heptagon",
+            7: "octagon"
+        }
 
     def process_input(self, data: dict):
         action = data.get("action")
@@ -28,7 +37,7 @@ class GameEngine:
                 self.state.towers[tower_id] = TowerData(
                     id=tower_id,
                     type=payload.get("type", "square"),
-                    damage=1,
+                    damage=5,
                     radius=150.0,
                     pos=Position(x=payload.get("x", 0), y=payload.get("y", 0))
                 )
@@ -39,9 +48,13 @@ class GameEngine:
                 asyncio.create_task(self.spawn_wave_routine())
 
     async def spawn_wave_routine(self):
+        current_shape = self.wave_shapes.get(self.state.wave, "octagon")
+        hp_pool = 20 * self.state.wave
+        speed = max(0.5, 2.0 - (self.state.wave * 0.15))
+
         for _ in range(10):
-            self.spawn_enemy("circle", 20, 2.0)
-            await asyncio.sleep(2)
+            self.spawn_enemy(current_shape, hp_pool, speed)
+            await asyncio.sleep(1.5)
 
         self.wave_active = False
         self.state.wave += 1
